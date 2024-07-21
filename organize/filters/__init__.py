@@ -5,11 +5,16 @@ from .duplicate import Duplicate
 from .empty import Empty
 from .exif import Exif
 from .extension import Extension
+from .mimeextension import MimeExtension
 from .filecontent import FileContent
 from .hash import Hash
+from .hashraw import HashRaw
+from .isimage import IsImage
+from .imagepath import ImagePath
 from .lastmodified import LastModified
 from .macos_tags import MacOSTags
 from .mimetype import MimeType
+from .mimetypemagic import MimeTypeMagic
 from .name import Name
 from .python import Python
 from .regex import Regex
@@ -25,9 +30,14 @@ ALL = (
     Extension,
     FileContent,
     Hash,
+    HashRaw,
+    IsImage,
+    ImagePath,
     LastModified,
     MacOSTags,
     MimeType,
+    MimeTypeMagic,
+    MimeExtension,
     Name,
     Python,
     Regex,

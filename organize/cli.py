@@ -254,7 +254,7 @@ def cli(argv: Union[list[str], str, None] = None) -> None:
     parsed_args = docopt(
         __doc__,
         argv=argv,
-        default_help=True,
+        #default_help=True,
         version=f"organize v{__version__}",
     )
     try:

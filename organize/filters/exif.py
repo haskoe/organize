@@ -24,6 +24,8 @@ ExifDefaultDict = DefaultDict[str, DefaultDict[str, ExifValue]]
 
 ORGANIZE_EXIFTOOL_PATH = os.environ.get("ORGANIZE_EXIFTOOL_PATH", "")
 
+DATETIMEORIGINAL = 'datetimeoriginal'
+EXIF = 'exif'
 
 @lru_cache(maxsize=1)
 def exiftool_available() -> bool:
@@ -102,7 +104,7 @@ def parse_offset_value(value: str) -> Union[timedelta, str]:
 
 def convert_value(key: str, value: str) -> ExifValue:
     _key = key.lower()
-    if "date" in _key:
+    if "date" in _key and not isinstance(value, int):
         return parse_date_value(value)
     if "offset" in _key:
         return parse_offset_value(value)
@@ -116,6 +118,11 @@ def convert_recursive(data):
             result[k] = convert_recursive(v)
         else:
             result[k] = convert_value(k, v)
+            # try:
+            #     result[k] = convert_value(k, v)
+            # except:
+            #     print(k,v)
+            #     #pass
     return result
 
 
@@ -255,11 +262,16 @@ class Exif(BaseModel):
         if self.lowercase_keys:
             data = lowercase_keys_recursive(data)
 
+        if (EXIF in data) and (DATETIMEORIGINAL in data[EXIF]) and data[EXIF][DATETIMEORIGINAL].startswith('0000'):
+            del data[EXIF][DATETIMEORIGINAL]
+
         # convert strings to datetime objects where possible
         parsed = convert_recursive(data)
+        # print(self.filter_tags, data.keys())
+        # print(matches_tags(self.filter_tags, data))
 
         res.vars[self.filter_config.name] = parsed
-        return matches_tags(self.filter_tags, data)
+        return True #matches_tags(self.filter_tags, data)
 
 
 if __name__ == "__main__":
@@ -267,10 +279,10 @@ if __name__ == "__main__":
 
     # Usage:
     # python organize/filters/exif.py tests/resources/images-with-exif/3.jpg
-    data = exifread_read(Path(sys.argv[1]))
-    print("Exifread", data)
     if exiftool_available():
-        data = exiftool_read(Path(sys.argv[1]))
-        print("Exiftool", data)
+        try:
+            data = exiftool_read(Path(sys.argv[1]))
+        except:
+            data = exifread_read(Path(sys.argv[1]))
     else:
-        print("Exiftool not available")
+        data = exifread_read(Path(sys.argv[1]))
