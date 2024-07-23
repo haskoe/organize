@@ -1,0 +1,102 @@
+rules:
+  - name: "move files except images and videos"
+    locations:
+      - path: "/media/heas/Expansion"
+      #- path: "/media/heas/Seagate"
+      #- path: "~/test"
+        max_depth: 20
+    filters:
+      - not mimetype: image
+      - not mimetype: video
+      - not mimetypemagic: image
+      - not mimetypemagic: video
+      - exif
+      - hash
+      - size: "< 0.5 GB"
+      - mimeextension
+      - not name:
+          contains: .git
+    actions:
+      - copy:
+          dest: "~/organize/{mimetypemagic.split('/')[0]}/{mimeextension}/{hash[:20]}_{size.bytes}.{mimeextension}"
+          on_conflict: "skip"
+      - write:
+          outfile: "./organize-filenames.txt"
+          text: "{mimetypemagic.split('/')[0]}/{mimeextension}/{hash[:20]}_{size.bytes}.{mimeextension} {relative_path}"
+          mode: "append"
+    tags:
+      - move_non_images
+
+  - name: "copy images with exif"
+    locations:
+      - path: "/media/heas/Expansion"
+      #- path: "/media/heas/Seagate"
+      #- path: "~/mapped"
+        max_depth: 20
+    filters:
+      - mimetype
+      - mimetypemagic
+      - isimage
+      - hashraw
+      - size
+      - mimeextension
+      - exif
+      - imagepath
+      - name
+    actions:
+      - copy:
+          dest: "~/organize/image/{imagepath}"
+          on_conflict: "skip"
+      - write:
+          outfile: "./organize-filenames.txt"
+          text: "{imagepath} {relative_path}"
+          mode: "append"
+    tags:
+      - copy_images
+
+  - name: "test copy images with exif"
+    locations:
+      - path: "~/mapped"
+        max_depth: 20
+    filters:
+      - exif
+    actions:
+      - copy:
+          dest: "~/organize/image/{path}"
+          on_conflict: "skip"
+    tags:
+      - test_copy_images
+
+  - name: "move images with no exif"
+    locations:
+      - path: "/media/heas/Seagate"
+      - path: "/media/heas/Seagate"
+      #- path: "~/temp"
+        max_depth: 20
+    filters:
+      - not exif
+      - mimetypemagic
+      - isimage
+      - hashraw
+      - size
+      - mimeextension
+      - imagepath
+    actions:
+      - copy:
+          dest: "~/organize/image/{imagepath}"
+          on_conflict: "skip"
+    tags:
+      - move_images_noexif
+
+  - name: "test"
+    locations:
+      - path: "/media/heas/Expansion"
+      #- path: "~/organize/image"
+        max_depth: 20
+    filters:
+      - extension
+    actions:
+      - echo: "{path}"
+    tags:
+      - test
+
